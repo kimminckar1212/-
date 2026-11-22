@@ -1,0 +1,101 @@
+# 학교 수강신청 · 가정통신문 통합 관리 시스템 (2조 무명)
+
+기업 데이터베이스 설계 및 구현 프로젝트. 최종 ERD(개체 21개 + 관계 릴레이션 2개 = **23개 릴레이션**)를 Supabase(PostgreSQL)에 구현하고, Next.js 웹앱을 Vercel로 배포합니다.
+
+- 기술 스택: Next.js(TypeScript) · Supabase(PostgreSQL · Auth · RLS) · GitHub · Vercel
+- DB 스크립트: `supabase/` 폴더
+
+---
+
+## 1. Supabase 설정 (DB 담당, 약 10분)
+
+1. https://supabase.com 에서 **New project** 생성 (Region: Northeast Asia (Seoul))
+2. 왼쪽 메뉴 **SQL Editor** → New query → 아래 파일을 **순서대로** 하나씩 붙여넣고 **Run**
+
+   | 순서 | 파일 | 내용 |
+   |---|---|---|
+   | 1 | `supabase/01_schema.sql` | 테이블 23개, 도메인 CHECK·UNIQUE 제약 |
+   | 2 | `supabase/02_rules.sql` | 업무 규칙 트리거, 조회 뷰, 배정·추첨·게시 함수 |
+   | 3 | `supabase/03_seed.sql` | 시연용 데이터 |
+   | 4 | `supabase/04_auth.sql` | 시연 계정 로그인 등록 (비밀번호 `test1234`) |
+   | 5 | `supabase/05_rls.sql` | 역할별 행 수준 보안(RLS) |
+
+3. **Project Settings → API** (또는 상단 **Connect** 버튼)에서 두 값을 복사
+   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
+   - anon(public) key 또는 publishable key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - ⚠ `service_role` / secret key는 절대 웹앱·GitHub에 넣지 않습니다.
+
+> 시연 데이터를 처음 상태로 되돌리려면: SQL Editor에서 `drop schema public cascade; create schema public; grant usage on schema public to anon, authenticated, service_role;` 실행 후 01~05 다시 실행 (04는 이미 등록된 계정을 건너뜀)
+
+## 2. GitHub 업로드
+
+```bash
+git init            # 이미 되어 있으면 생략
+git add .
+git commit -m "초기 구현"
+git branch -M main
+git remote add origin https://github.com/<계정>/<저장소>.git
+git push -u origin main
+```
+(또는 GitHub 웹에서 새 저장소 생성 → **uploading an existing file**로 폴더 내용 드래그. `node_modules`, `.next`는 올리지 않음)
+
+## 3. Vercel 배포
+
+1. https://vercel.com → **Add New → Project** → GitHub 저장소 Import
+2. Framework는 Next.js 자동 인식. **Environment Variables**에 위 두 값 입력
+3. **Deploy** → 발급된 `https://<이름>.vercel.app` 주소로 접속
+4. 이후 GitHub에 push하면 자동 재배포
+
+## 4. 로컬 실행 (선택)
+
+```bash
+cp .env.example .env.local   # 값 채우기
+npm install
+npm run dev                  # http://localhost:3000
+```
+
+---
+
+## 시연 계정 (비밀번호 모두 `test1234`, 로그인 화면에 바로가기 버튼 있음)
+
+| 구분 | 이름 | 이메일 | 시연 포인트 |
+|---|---|---|---|
+| 학생 | 강지민 | s20260001@school.example | 정상 배정, 개인 시간표 |
+| 학생 | 윤서연 | s20260003@school.example | 철학 폐강 → 3차 추첨 |
+| 학생 | 한도윤 | s20260004@school.example | 기이수 과목(대수) 재신청 차단 |
+| 학생 | 오하린 | s20260005@school.example | 필수과목(정보) 누락 경고 → 3차 신청 |
+| 학부모 | 강현주 | p1@school.example | 자녀 2명 통합 조회, 설문 응답 |
+| 학부모 | 오미경 | p3@school.example | 설문 미응답 → 재안내 |
+| 교사 | 이수진 (일반·담임) | t0002@school.example | 폐강 판단, 누락 상담, 추첨, 시간표, 1차 결재 |
+| 교사 | 정하늘 (일반) | t0005@school.example | 가정통신문 기안·재상신·게시 |
+| 부장교사 | 김영호 | t0001@school.example | 최종 결재·반려 |
+| 부장교사 | 최은정 | t0004@school.example | 2026-51호 최종 결재 대기 |
+
+## 권장 시연 순서 (표 Ⅵ-15 시나리오)
+
+1. **누락 상담**: 이수진 → 누락·상담 탭에서 오하린(정보 누락) 확인 → 오하린 로그인 → 경고 확인 후 정보 1지망 신청
+2. **중복 차단**: 한도윤 → 대수 신청 → "이미 이수한 과목" DB 트리거 메시지
+3. **폐강 처리**: 이수진 → 개설·폐강 탭 (철학 폐강, 경제 소인수 예외 개설 사유 확인)
+4. **3차 추첨**: 이수진 → 배정·추첨 → 3차 → 추첨 실행 (경제 잔여 1석에 2명 → 1명 탈락 후 2지망 배정)
+5. **시간표 충돌**: 이수진 → 시간표 → 생명과학을 월 2교시에 추가 → "학생 시간 중복" 차단
+6. **반려·재상신**: 정하늘 기안·상신 → 이수진 1차 승인 → 김영호 반려(사유) → 정하늘 수정·재상신 → 승인 → 게시
+7. **회신 관리**: 강현주 설문 응답 → 이수진 → 2026-50호 응답 현황 → 미응답자 재안내
+8. **보안(RLS)**: 학생으로 로그인 후 주소창에 `/teacher` 입력 → 자기 화면으로 돌아감, 다른 학생 데이터 조회 불가
+
+## DB 구현 요약
+
+| 업무 규칙 | 구현 |
+|---|---|
+| 차수별 (학번, 개설과목) 중복 신청 불가 | UNIQUE (일정, 학번, 개설번호) |
+| 3차만 1~3지망, 같은 순위 중복 불가 | 트리거 + UNIQUE (일정, 학번, 희망순위) |
+| 기이수 과목 재신청 차단 / 신청 기간 외 차단 | `chk_application` 트리거 |
+| 폐강 판단 사유 필수, 판단 시 신청내역 자동 폐강 처리 | CHECK + `apply_closure_decision` 트리거 |
+| 교실·교사·학생 시간 중복 방지 | `chk_timetable_conflict`, `chk_enrollment` 트리거 |
+| 분반 정원 초과 배정 불가 | `chk_enrollment` 트리거 |
+| 선임·후임교사 배타 | `chk_teacher_subtype` 트리거 |
+| 작성자 제외 1차 → 지정 부장교사 최종, 반려 사유 필수, 차수별 이력 보존 | PK (교사, 문서, 상신차수) + CHECK + `chk_approval` 트리거 |
+| 최종 결재 후에만 게시 | `chk_notice_publish` 트리거 |
+| 수신자 본인만, 기한 내 1인 1응답·수정 | UNIQUE (문서, 사용자) + `chk_survey_response` 트리거 |
+| 3차 무작위 추첨·차순위 배정 | `run_lottery()` 함수 |
+| 필수 누락자 / 미응답자 자동 추출 | `v_missing_required`, `v_nonresponders` 뷰 |
+| 역할별 접근 통제 | RLS 정책 (`05_rls.sql`) |
