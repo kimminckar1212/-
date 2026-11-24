@@ -89,7 +89,7 @@ export function Counsel({ teacherNo }: { teacherNo: string }) {
         <div className="mt-4"><Button onClick={save} disabled={!form.student_no || !form.content}>저장</Button></div>
       </Card>
 
-      <Card title="상담 기록">
+      <Card title="상담 기록" right={<span className="text-xs text-slate-400">내가 작성했거나 내가 담임인 학생의 상담만 표시됩니다</span>}>
         <Table head={["일시", "학생", "구분", "변경 과목", "내용", "교사"]} empty={!logs.length}>
           {logs.map((l) => (
             <tr key={l.counseling_id}>

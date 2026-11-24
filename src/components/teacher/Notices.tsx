@@ -248,9 +248,11 @@ function NoticeDetail({ docNo, onFlash }: { docNo: string; onFlash: ReturnType<t
                   <h3 className="text-sm font-semibold text-slate-700">미응답자 ({non.length})</h3>
                   <Button small onClick={remind} disabled={!non.length}>미응답자 재안내</Button>
                 </div>
-                <Table head={["이름", "구분", "열람", "재안내"]} empty={!non.length}>
+                <Table head={["이름", "소속 · 관계", "열람", "재안내"]} empty={!non.length}>
                   {non.map((r) => (
-                    <tr key={r.user_id}><Td>{r.name}</Td><Td className="text-xs">{r.user_type}</Td>
+                    <tr key={r.user_id}>
+                      <Td><div className="font-medium">{r.name}</div><div className="text-[11px] text-slate-400">{r.user_type}</div></Td>
+                      <Td className="text-xs">{r.affiliation ?? "-"}</Td>
                       <Td className="text-xs">{r.read_at ? fmtDT(r.read_at) : <span className="text-rose-500">미열람</span>}</Td>
                       <Td className="text-xs">{fmtDT(r.reminded_at)}</Td></tr>
                   ))}

@@ -1,6 +1,5 @@
 "use client";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { homeOf, loadProfile } from "@/lib/session";
 import { Alert, Button, Field, inputCls } from "@/components/ui";
@@ -19,6 +18,7 @@ const DEMO = [
   ] },
   { group: "교사", items: [
     { label: "이수진 · 일반교사·담임", email: "t0002@school.example" },
+    { label: "박민준 · 일반교사(1차 결재)", email: "t0003@school.example" },
     { label: "정하늘 · 일반교사·기안자", email: "t0005@school.example" },
     { label: "김영호 · 부장교사(결재)", email: "t0001@school.example" },
     { label: "최은정 · 부장교사(결재)", email: "t0004@school.example" },
@@ -26,20 +26,32 @@ const DEMO = [
 ];
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // 화면에 들어올 때마다 로그인 처리 상태 초기화 (이전 화면 상태 복원 대비)
+  useEffect(() => { setBusy(false); setError(""); }, []);
+
   const signIn = async (e?: FormEvent, em = email, pw = password) => {
     e?.preventDefault();
+    if (busy) return;
     setBusy(true); setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email: em, password: pw });
-    if (error) { setError("이메일 또는 비밀번호가 올바르지 않습니다."); setBusy(false); return; }
-    const p = await loadProfile();
-    if (!p) { setError("사용자 정보가 등록되지 않은 계정입니다."); setBusy(false); return; }
-    router.replace(homeOf(p.role));
+    try {
+      // 다른 계정이 남아 있으면 먼저 정리
+      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signInWithPassword({ email: em, password: pw });
+      if (error) { setError("이메일 또는 비밀번호가 올바르지 않습니다."); return; }
+      const p = await loadProfile();
+      if (!p) { setError("사용자 정보가 등록되지 않은 계정입니다."); await supabase.auth.signOut(); return; }
+      // 전체 새로고침으로 이동 → 역할별 화면을 항상 새 계정 기준으로 불러옴
+      window.location.replace(homeOf(p.role));
+    } catch {
+      setError("서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
