@@ -9,6 +9,7 @@ type Question = { no: number; type: "단일선택" | "복수선택" | "서술형
 /** 학생·학부모 가정통신문함: 열람 기록, 설문 제출·수정 */
 export function NoticeInbox({ userId }: { userId: string }) {
   const [rows, setRows] = useState<any[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState<any | null>(null);
   const [response, setResponse] = useState<any | null>(null);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -22,6 +23,7 @@ export function NoticeInbox({ userId }: { userId: string }) {
     const { data: resp } = await supabase.from("survey_responses").select("doc_no").eq("user_id", userId);
     const answered = new Set((resp ?? []).map((r) => r.doc_no));
     setRows((data ?? []).filter((r: any) => r.notices).map((r: any) => ({ ...r, answered: answered.has(r.doc_no) })));
+    setLoaded(true);
   }, [userId]);
   useEffect(() => { load(); }, [load]);
 
@@ -57,7 +59,7 @@ export function NoticeInbox({ userId }: { userId: string }) {
   return (
     <div className="grid gap-5 lg:grid-cols-5">
       <div className="lg:col-span-2">
-        <Card title={`받은 가정통신문 (${rows.length})`}>
+        <Card title={loaded ? `받은 가정통신문 (${rows.length})` : "받은 가정통신문"}>
           <ul className="divide-y divide-slate-100">
             {rows.map((r) => (
               <li key={r.doc_no}>
@@ -74,7 +76,8 @@ export function NoticeInbox({ userId }: { userId: string }) {
                 </button>
               </li>
             ))}
-            {rows.length === 0 && <li className="py-8 text-center text-sm text-slate-400">받은 가정통신문이 없습니다</li>}
+            {!loaded && <li className="py-8 text-center text-sm text-slate-400">불러오는 중…</li>}
+            {loaded && rows.length === 0 && <li className="py-8 text-center text-sm text-slate-400">받은 가정통신문이 없습니다</li>}
           </ul>
         </Card>
       </div>

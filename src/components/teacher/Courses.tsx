@@ -15,6 +15,7 @@ export function Courses({ teacherNo }: { teacherNo: string }) {
   const [form, setForm] = useState({ result: "개설", willing: true, reason: "" });
   const flash = useFlash();
 
+  const [loaded, setLoaded] = useState(false);
   const load = useCallback(async () => {
     if (!term) return;
     const { data } = await supabase.from("v_offering_status").select("*").eq("school_year", term.school_year).eq("semester", term.semester).order("subject_code");
@@ -22,6 +23,7 @@ export function Courses({ teacherNo }: { teacherNo: string }) {
     const { data: d } = await supabase.from("closure_decisions").select("*, offered_courses!inner(school_year, semester, subjects(subject_name))")
       .eq("offered_courses.school_year", term.school_year).eq("offered_courses.semester", term.semester).order("decision_id", { ascending: false });
     setDecisions(d ?? []);
+    setLoaded(true);
   }, [term]);
   useEffect(() => { load(); }, [load]);
 
@@ -40,7 +42,7 @@ export function Courses({ teacherNo }: { teacherNo: string }) {
     <div className="space-y-5">
       {flash.view}
       <Card title={`개설 과목 현황 ${term ? `(${term.school_year}학년도 ${term.semester}학기)` : ""}`}>
-        <Table head={["과목", "구분", "신청 인원", "정원", "배정", "폐강 기준", "상태", ""]} empty={!rows.length}>
+        <Table head={["과목", "구분", "신청 인원", "정원", "배정", "폐강 기준", "상태", ""]} loading={!loaded} empty={!rows.length}>
           {rows.map((o) => {
             const under = o.applicant_count <= o.closing_threshold;
             return (
@@ -90,7 +92,7 @@ export function Courses({ teacherNo }: { teacherNo: string }) {
       )}
 
       <Card title="폐강 판단 이력">
-        <Table head={["판단일", "과목", "신청/기준", "소인수", "교사 의사", "결과", "사유", "판단 교사"]} empty={!decisions.length}>
+        <Table head={["판단일", "과목", "신청/기준", "소인수", "교사 의사", "결과", "사유", "판단 교사"]} loading={!loaded} empty={!decisions.length}>
           {decisions.map((d) => (
             <tr key={d.decision_id}>
               <Td className="text-xs">{d.decided_on}</Td><Td className="font-medium">{d.offered_courses.subjects.subject_name}</Td>

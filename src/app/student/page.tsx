@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useProfile } from "@/lib/session";
 import { errMsg, supabase } from "@/lib/supabase";
 import { Shell } from "@/components/Shell";
-import { Alert, Badge, Button, Card, fmtDT, Table, Tabs, Td, useFlash } from "@/components/ui";
+import { Alert, Badge, Button, Card, fmtDT, Loading, Table, Tabs, Td, useFlash } from "@/components/ui";
 import { MyTimetable, useCurrentPeriod } from "@/components/StudentShared";
 import { NoticeInbox } from "@/components/NoticeInbox";
 
@@ -29,7 +29,8 @@ export default function StudentPage() {
 }
 
 function Apply({ studentNo }: { studentNo: string }) {
-  const { open, current } = useCurrentPeriod();
+  const { open, current, loaded: periodsLoaded } = useCurrentPeriod();
+  const [loaded, setLoaded] = useState(false);
   const [offerings, setOfferings] = useState<any[]>([]);
   const [mine, setMine] = useState<any[]>([]);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
@@ -47,6 +48,7 @@ function Apply({ studentNo }: { studentNo: string }) {
     ]);
     setOfferings(o.data ?? []); setMine(a.data ?? []);
     setCompleted(new Set((c.data ?? []).map((x) => x.subject_code))); setMissing(m.data ?? []);
+    setLoaded(true);
   }, [current, studentNo]);
   useEffect(() => { load(); }, [load]);
 
@@ -67,6 +69,8 @@ function Apply({ studentNo }: { studentNo: string }) {
     const { error } = await supabase.from("applications").delete().eq("application_id", applicationId);
     if (error) flash.fail(errMsg(error)); else { flash.ok("신청을 취소했습니다."); load(); }
   };
+
+  if (!periodsLoaded || (current && !loaded)) return <Card><Loading text="수강신청 정보를 불러오는 중…" /></Card>;
 
   return (
     <div className="space-y-5">
@@ -129,9 +133,9 @@ function Apply({ studentNo }: { studentNo: string }) {
 }
 
 function History({ studentNo }: { studentNo: string }) {
-  const [apps, setApps] = useState<any[]>([]);
-  const [enr, setEnr] = useState<any[]>([]);
-  const [cns, setCns] = useState<any[]>([]);
+  const [apps, setApps] = useState<any[] | null>(null);
+  const [enr, setEnr] = useState<any[] | null>(null);
+  const [cns, setCns] = useState<any[] | null>(null);
   useEffect(() => {
     supabase.from("applications").select("*, application_periods(round, school_year, semester), offered_courses(subjects(subject_name))")
       .eq("student_no", studentNo).order("applied_at", { ascending: false }).then(({ data }) => setApps(data ?? []));
@@ -143,8 +147,8 @@ function History({ studentNo }: { studentNo: string }) {
   return (
     <div className="space-y-5">
       <Card title="수강 배정 결과">
-        <Table head={["과목", "분반", "배정 방식", "상태", "변경 사유"]} empty={!enr.length}>
-          {enr.map((e) => (
+        <Table head={["과목", "분반", "배정 방식", "상태", "변경 사유"]} loading={!enr} empty={!enr?.length}>
+          {(enr ?? []).map((e) => (
             <tr key={e.enrollment_id}>
               <Td className="font-medium">{e.sections.offered_courses.subjects.subject_name}</Td>
               <Td>{e.sections.section_no}반</Td><Td>{e.method}</Td><Td><Badge>{e.status}</Badge></Td>
@@ -154,8 +158,8 @@ function History({ studentNo }: { studentNo: string }) {
         </Table>
       </Card>
       <Card title="수강신청 내역">
-        <Table head={["차수", "과목", "희망 순위", "신청 일시", "상태"]} empty={!apps.length}>
-          {apps.map((a) => (
+        <Table head={["차수", "과목", "희망 순위", "신청 일시", "상태"]} loading={!apps} empty={!apps?.length}>
+          {(apps ?? []).map((a) => (
             <tr key={a.application_id}>
               <Td>{a.application_periods.round}차</Td>
               <Td className="font-medium">{a.offered_courses.subjects.subject_name}</Td>
@@ -166,8 +170,8 @@ function History({ studentNo }: { studentNo: string }) {
         </Table>
       </Card>
       <Card title="상담 기록">
-        <Table head={["일시", "구분", "교사", "내용"]} empty={!cns.length}>
-          {cns.map((c) => (
+        <Table head={["일시", "구분", "교사", "내용"]} loading={!cns} empty={!cns?.length}>
+          {(cns ?? []).map((c) => (
             <tr key={c.counseling_id}>
               <Td className="text-xs">{fmtDT(c.counseled_at)}</Td><Td><Badge tone="재신청필요">{c.counsel_type}</Badge></Td>
               <Td>{c.teachers?.users?.name}</Td><Td className="text-xs">{c.content}</Td>

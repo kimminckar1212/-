@@ -17,6 +17,7 @@ export function Schedule() {
   const [form, setForm] = useState({ section_id: "", room_no: "", day_of_week: "월", period: "1" });
   const flash = useFlash();
 
+  const [loaded, setLoaded] = useState(false);
   const load = useCallback(async () => {
     if (!term) return;
     const { data: s } = await supabase.from("sections")
@@ -28,6 +29,7 @@ export function Schedule() {
     setSlots(t ?? []);
     const { data: r } = await supabase.from("classrooms").select("*").order("room_no");
     setRooms(r ?? []);
+    setLoaded(true);
   }, [term]);
   useEffect(() => { load(); }, [load]);
 
@@ -93,7 +95,7 @@ export function Schedule() {
       </Card>
 
       <Card title="분반 계획">
-        <Table head={["분반", "담당 교사", "최대 인원", "주당 시수(편성)"]} empty={!sections.length}>
+        <Table head={["분반", "담당 교사", "최대 인원", "주당 시수(편성)"]} loading={!loaded} empty={!sections.length}>
           {sections.map((s) => (
             <tr key={s.section_id}>
               <Td className="font-medium">{label(s)}</Td><Td>{name(s.teacher_no)}</Td><Td>{s.max_capacity}</Td>

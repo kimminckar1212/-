@@ -16,6 +16,7 @@ export function Counsel({ teacherNo }: { teacherNo: string }) {
   const [form, setForm] = useState({ student_no: "", counsel_type: "필수이수누락", changed_offering_id: "", content: "" });
   const flash = useFlash();
 
+  const [loaded, setLoaded] = useState(false);
   const load = useCallback(async () => {
     const [m, l, s] = await Promise.all([
       supabase.from("v_missing_required").select("*").order("student_no"),
@@ -23,6 +24,7 @@ export function Counsel({ teacherNo }: { teacherNo: string }) {
       supabase.from("students").select("student_no, users(name)").order("student_no"),
     ]);
     setMissing(m.data ?? []); setLogs(l.data ?? []); setStudents(s.data ?? []);
+    setLoaded(true);
   }, []);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -51,7 +53,7 @@ export function Counsel({ teacherNo }: { teacherNo: string }) {
     <div className="space-y-5">
       {flash.view}
       <Card title={`필수 이수 누락자 (${missing.length}명)`} right={<span className="text-xs text-slate-400">이수·신청·배정 어디에도 없는 필수 과목 자동 추출</span>}>
-        <Table head={["학번", "이름", "학년/반/번호", "담임", "누락 과목", ""]} empty={!missing.length}>
+        <Table head={["학번", "이름", "학년/반/번호", "담임", "누락 과목", ""]} loading={!loaded} empty={!missing.length}>
           {missing.map((m) => (
             <tr key={m.student_no + m.subject_code}>
               <Td>{m.student_no}</Td><Td className="font-medium">{m.student_name}</Td>
@@ -90,7 +92,7 @@ export function Counsel({ teacherNo }: { teacherNo: string }) {
       </Card>
 
       <Card title="상담 기록" right={<span className="text-xs text-slate-400">내가 작성했거나 내가 담임인 학생의 상담만 표시됩니다</span>}>
-        <Table head={["일시", "학생", "구분", "변경 과목", "내용", "교사"]} empty={!logs.length}>
+        <Table head={["일시", "학생", "구분", "변경 과목", "내용", "교사"]} loading={!loaded} empty={!logs.length}>
           {logs.map((l) => (
             <tr key={l.counseling_id}>
               <Td className="text-xs">{fmtDT(l.counseled_at)}</Td><Td className="font-medium">{l.students?.users?.name}</Td>

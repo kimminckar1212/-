@@ -42,20 +42,20 @@ export default function ParentPage() {
 }
 
 function ChildStatus({ studentNo }: { studentNo: string }) {
-  const [enr, setEnr] = useState<any[]>([]);
-  const [apps, setApps] = useState<any[]>([]);
+  const [enr, setEnr] = useState<any[] | null>(null);
+  const [apps, setApps] = useState<any[] | null>(null);
   useEffect(() => {
     supabase.from("enrollments").select("*, sections(section_no, offered_courses(subjects(subject_name, credits)))")
       .eq("student_no", studentNo).then(({ data }) => setEnr(data ?? []));
     supabase.from("applications").select("*, application_periods(round), offered_courses(subjects(subject_name))")
       .eq("student_no", studentNo).in("status", ["신청", "재신청필요", "폐강", "추첨탈락"]).then(({ data }) => setApps(data ?? []));
   }, [studentNo]);
-  const credits = enr.reduce((s, e) => s + (e.sections.offered_courses.subjects.credits ?? 0), 0);
+  const credits = (enr ?? []).reduce((s, e) => s + (e.sections.offered_courses.subjects.credits ?? 0), 0);
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <Card title="확정 수강 배정" right={<span className="text-xs text-slate-500">총 {credits}학점</span>}>
-        <Table head={["과목", "분반", "배정 방식", "상태"]} empty={!enr.length}>
-          {enr.map((e) => (
+      <Card title="확정 수강 배정" right={enr && <span className="text-xs text-slate-500">총 {credits}학점</span>}>
+        <Table head={["과목", "분반", "배정 방식", "상태"]} loading={!enr} empty={!enr?.length}>
+          {(enr ?? []).map((e) => (
             <tr key={e.enrollment_id}>
               <Td className="font-medium">{e.sections.offered_courses.subjects.subject_name}</Td>
               <Td>{e.sections.section_no}반</Td><Td className="text-xs">{e.method}</Td><Td><Badge>{e.status}</Badge></Td>
@@ -64,8 +64,8 @@ function ChildStatus({ studentNo }: { studentNo: string }) {
         </Table>
       </Card>
       <Card title="확인이 필요한 신청">
-        <Table head={["차수", "과목", "상태"]} empty={!apps.length}>
-          {apps.map((a) => (
+        <Table head={["차수", "과목", "상태"]} loading={!apps} empty={!apps?.length}>
+          {(apps ?? []).map((a) => (
             <tr key={a.application_id}>
               <Td>{a.application_periods.round}차{a.preference_rank ? ` · ${a.preference_rank}지망` : ""}</Td>
               <Td className="font-medium">{a.offered_courses.subjects.subject_name}</Td><Td><Badge>{a.status}</Badge></Td>

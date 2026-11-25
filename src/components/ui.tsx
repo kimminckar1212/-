@@ -88,7 +88,7 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: readon
   );
 }
 
-export function Table({ head, children, empty }: { head: ReactNode[]; children: ReactNode; empty?: boolean }) {
+export function Table({ head, children, empty, loading }: { head: ReactNode[]; children: ReactNode; empty?: boolean; loading?: boolean }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -99,7 +99,8 @@ export function Table({ head, children, empty }: { head: ReactNode[]; children: 
         </thead>
         <tbody className="divide-y divide-slate-100">{children}</tbody>
       </table>
-      {empty && <p className="py-6 text-center text-sm text-slate-400">데이터가 없습니다</p>}
+      {loading ? <p className="py-6 text-center text-sm text-slate-400">불러오는 중…</p>
+        : empty && <p className="py-6 text-center text-sm text-slate-400">데이터가 없습니다</p>}
     </div>
   );
 }
@@ -125,6 +126,9 @@ export function Stat({ label, value, sub }: { label: string; value: ReactNode; s
     </div>
   );
 }
+
+export const Loading = ({ text = "불러오는 중…" }: { text?: string }) =>
+  <p className="py-10 text-center text-sm text-slate-400">{text}</p>;
 
 export const fmtDT = (s?: string | null) =>
   s ? new Date(s).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";

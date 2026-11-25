@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { errMsg, supabase } from "@/lib/supabase";
 import { Badge, Button, Card, Field, fmtD, fmtDT, inputCls, Stat, Table, Td, useFlash } from "../ui";
 import { useTeachers } from "./common";
@@ -29,11 +29,47 @@ export function Notices({ teacherNo, department, isJunior }: { teacherNo: string
   const [detail, setDetail] = useState<string | null>(null);
   const flash = useFlash();
 
+  // 작성 중 내용 임시 보존: 탭 이동·새로고침 후에도 복원
+  const draftKey = `notice-draft-${teacherNo}`;
+  const dirty = showForm && !!(form.title || form.body || editing);
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    try {
+      const saved = sessionStorage.getItem(draftKey);
+      if (saved) {
+        const d = JSON.parse(saved);
+        setForm({ ...emptyForm, ...d.form }); setEditing(d.editing ?? null); setShowForm(true);
+        flash.info("저장하지 않은 작성 내용을 불러왔습니다. 저장하거나 닫기를 눌러 정리하세요.");
+      }
+    } catch { /* 저장소 사용 불가 시 무시 */ }
+  }, [draftKey, flash]);
+  useEffect(() => {
+    if (!restored.current) return;
+    try {
+      if (dirty) sessionStorage.setItem(draftKey, JSON.stringify({ form, editing }));
+      else sessionStorage.removeItem(draftKey);
+    } catch { /* 무시 */ }
+  }, [dirty, form, editing, draftKey]);
+  useEffect(() => {
+    // 창 닫기·새로고침 시 경고
+    const warn = (e: BeforeUnloadEvent) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+  const closeForm = () => {
+    if (dirty && !window.confirm("작성 중인 내용이 저장되지 않았습니다. 버리고 닫을까요?")) return;
+    setForm(emptyForm); setEditing(null); setShowForm(false);
+  };
+
+  const [loaded, setLoaded] = useState(false);
   const load = useCallback(async () => {
     const { data } = await supabase.from("notices").select("*").order("created_at", { ascending: false });
     setNotices(data ?? []);
     const { data: a } = await supabase.from("approvals").select("*").order("submit_round").order("step");
     setApprovals(a ?? []);
+    setLoaded(true);
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -91,7 +127,7 @@ export function Notices({ teacherNo, department, isJunior }: { teacherNo: string
       )}
 
       {showForm && (
-        <Card title={editing ? `${editing}호 수정 (반려 사유 반영)` : "가정통신문 기안"} right={<Button small variant="ghost" onClick={() => setShowForm(false)}>닫기</Button>}>
+        <Card title={editing ? `${editing}호 수정 (반려 사유 반영)` : "가정통신문 기안"} right={<Button small variant="ghost" onClick={closeForm}>닫기</Button>}>
           {editing && (() => {
             const rej = approvals.filter((a) => a.doc_no === editing && a.status === "반려").pop();
             return rej ? <div className="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">반려 사유 ({name(rej.teacher_no)}): {rej.reject_reason}</div> : null;
@@ -142,7 +178,7 @@ export function Notices({ teacherNo, department, isJunior }: { teacherNo: string
       )}
 
       <Card title="가정통신문 목록">
-        <Table head={["문서번호", "제목", "작성", "최종 검토", "대상", "상태", "진행"]} empty={!notices.length}>
+        <Table head={["문서번호", "제목", "작성", "최종 검토", "대상", "상태", "진행"]} loading={!loaded} empty={!notices.length}>
           {notices.map((n) => {
             const mine = n.writer_teacher_no === teacherNo;
             const hist = approvals.filter((a) => a.doc_no === n.doc_no);
@@ -190,6 +226,7 @@ export function Notices({ teacherNo, department, isJunior }: { teacherNo: string
 }
 
 function NoticeDetail({ docNo, onFlash }: { docNo: string; onFlash: ReturnType<typeof useFlash> }) {
+  const boxRef = useRef<HTMLDivElement>(null);
   const [n, setN] = useState<any>(null);
   const [stat, setStat] = useState<any>(null);
   const [non, setNon] = useState<any[]>([]);
@@ -209,10 +246,14 @@ function NoticeDetail({ docNo, onFlash }: { docNo: string; onFlash: ReturnType<t
     if (error) return onFlash.fail(errMsg(error));
     onFlash.ok(`미응답자 ${data}명에게 재안내를 기록했습니다.`); load();
   };
-  if (!n) return null;
+  useEffect(() => {
+    if (n) boxRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [n]);
+  if (!n) return <div ref={boxRef}><Card><p className="py-6 text-center text-sm text-slate-400">불러오는 중…</p></Card></div>;
   const qs: any[] = n.survey_questions ?? [];
   return (
-    <Card title={`${n.doc_no}호 ${n.title}`}>
+    <div ref={boxRef} className="scroll-mt-4">
+    <Card title={`${n.doc_no}호 ${n.title}`} right={<span className="text-xs text-slate-400">응답 현황 상세</span>}>
       <p className="mb-4 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{n.body}</p>
       {stat && n.status === "게시" && (
         <>
@@ -263,5 +304,6 @@ function NoticeDetail({ docNo, onFlash }: { docNo: string; onFlash: ReturnType<t
         </>
       )}
     </Card>
+    </div>
   );
 }

@@ -12,6 +12,7 @@ export function Assign() {
   const [result, setResult] = useState<any[] | null>(null);
   const flash = useFlash();
 
+  const [loaded, setLoaded] = useState(false);
   const load = useCallback(async () => {
     const { data: p } = await supabase.from("application_periods").select("*").order("starts_at");
     setPeriods(p ?? []);
@@ -23,6 +24,7 @@ export function Assign() {
       const now = Date.now();
       setSel((p.find((x) => new Date(x.starts_at).getTime() <= now && now <= new Date(x.ends_at).getTime()) ?? p[p.length - 1]).period_id);
     }
+    setLoaded(true);
   }, [sel]);
   useEffect(() => { load(); }, [load]);
 
@@ -79,7 +81,7 @@ export function Assign() {
               ))}
             </div>
           )}
-          <Table head={["학번", "이름", "과목", "희망 순위", "신청 일시", "상태"]} empty={!list.length}>
+          <Table head={["학번", "이름", "과목", "희망 순위", "신청 일시", "상태"]} loading={!loaded} empty={!list.length}>
             {list.map((a) => (
               <tr key={a.application_id}>
                 <Td>{a.student_no}</Td><Td className="font-medium">{a.students?.users?.name}</Td>

@@ -20,13 +20,14 @@
    | 4 | `supabase/04_auth.sql` | 시연 계정 로그인 등록 (비밀번호 `test1234`) |
    | 5 | `supabase/05_rls.sql` | 역할별 행 수준 보안(RLS) |
    | 6 | `supabase/06_update.sql` | 상담기록 담당 교사 제한, 미응답자 소속(자녀·관계) 표시 |
+   | 7 | `supabase/07_fix_dates.sql` | 시연 데이터 열람일시 보정 |
 
 3. **Project Settings → API** (또는 상단 **Connect** 버튼)에서 두 값을 복사
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - anon(public) key 또는 publishable key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - ⚠ `service_role` / secret key는 절대 웹앱·GitHub에 넣지 않습니다.
 
-> 시연 데이터를 처음 상태로 되돌리려면: SQL Editor에서 `drop schema public cascade; create schema public; grant usage on schema public to anon, authenticated, service_role;` 실행 후 01~06 다시 실행 (04는 이미 등록된 계정을 건너뜀)
+> 시연 데이터를 처음 상태로 되돌리려면: SQL Editor에서 `drop schema public cascade; create schema public; grant usage on schema public to anon, authenticated, service_role;` 실행 후 01~07 다시 실행 (04는 이미 등록된 계정을 건너뜀)
 
 ## 2. GitHub 업로드
 

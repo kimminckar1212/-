@@ -2,21 +2,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Badge, Card, Stat, Table, Td } from "../ui";
+import { Badge, Card, Loading, Stat, Table, Td } from "../ui";
 import { useLatestTerm } from "./common";
 
 /** 결재권자 현황: 과목별 개설·폐강, 통신문 열람·응답률 */
 export function Stats() {
   const term = useLatestTerm();
-  const [off, setOff] = useState<any[]>([]);
-  const [ns, setNs] = useState<any[]>([]);
-  const [missing, setMissing] = useState(0);
+  const [off, setOff] = useState<any[] | null>(null);
+  const [ns, setNs] = useState<any[] | null>(null);
+  const [missing, setMissing] = useState<number | null>(null);
   useEffect(() => {
     if (!term) return;
     supabase.from("v_offering_status").select("*").eq("school_year", term.school_year).eq("semester", term.semester).order("subject_code").then(({ data }) => setOff(data ?? []));
     supabase.from("v_notice_stats").select("*").order("doc_no", { ascending: false }).then(({ data }) => setNs(data ?? []));
     supabase.from("v_missing_required").select("student_no").then(({ data }) => setMissing(new Set((data ?? []).map((d) => d.student_no)).size));
   }, [term]);
+  if (!off || !ns || missing === null) return <Card><Loading text="현황을 불러오는 중…" /></Card>;
   const opened = off.filter((o) => o.status === "개설").length;
   const closed = off.filter((o) => o.status === "폐강").length;
   const enrolled = off.reduce((s, o) => s + o.enrolled_count, 0);
@@ -27,7 +28,7 @@ export function Stats() {
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="개설 / 폐강 과목" value={`${opened} / ${closed}`} sub={term ? `${term.school_year}학년도 ${term.semester}학기` : ""} />
-        <Stat label="배정 인원 / 총 정원" value={`${enrolled} / ${cap}`} sub="수강 배정 기준" />
+        <Stat label="전체 과목 배정 건수 / 총 정원" value={`${enrolled} / ${cap}`} sub="과목별 배정 합계 (학생 수 아님)" />
         <Stat label="필수 이수 누락 학생" value={`${missing}명`} sub="상담 필요" />
         <Stat label="설문 평균 응답률" value={`${avgRate}%`} sub={`게시된 설문 ${posted.length}건`} />
       </div>

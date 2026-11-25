@@ -173,6 +173,9 @@ insert into approvals (teacher_no, doc_no, submit_round, step, status, decided_a
  ('T0003','2026-50',1,'1차','결재완료','2026-11-18 10:00+09'),
  ('T0001','2026-50',1,'최종','결재완료','2026-11-18 14:00+09');
 select publish_notice('2026-50');
+-- 시연용 시간 흐름: 이틀 전 게시·배부 → 하루 전 열람
+update notices set posted_on = current_date - 2 where doc_no = '2026-50';
+update recipients set delivered_at = now() - interval '2 days' where doc_no = '2026-50';
 update recipients set read_at = now() - interval '1 day'
  where doc_no = '2026-50' and user_id in ('30000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000002','30000000-0000-0000-0000-000000000003');
 insert into survey_responses (doc_no, user_id, answers) values

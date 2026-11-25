@@ -13,12 +13,14 @@ export function Approvals({ teacherNo }: { teacherNo: string }) {
   const [reason, setReason] = useState<Record<string, string>>({});
   const flash = useFlash();
 
+  const [loaded, setLoaded] = useState(false);
   const load = useCallback(async () => {
     const { data: p } = await supabase.from("approvals").select("*, notices(*)").eq("teacher_no", teacherNo).eq("status", "검토");
     setPending(p ?? []);
     const { data: h } = await supabase.from("approvals").select("*, notices(title)").eq("teacher_no", teacherNo).neq("status", "검토")
       .order("decided_at", { ascending: false });
     setHistory(h ?? []);
+    setLoaded(true);
   }, [teacherNo]);
   useEffect(() => { load(); }, [load]);
 
@@ -48,7 +50,8 @@ export function Approvals({ teacherNo }: { teacherNo: string }) {
     <div className="space-y-5">
       {flash.view}
       <Card title={`결재 대기 (${pending.length})`}>
-        {pending.length === 0 && <p className="py-6 text-center text-sm text-slate-400">결재할 문서가 없습니다</p>}
+        {!loaded && <p className="py-6 text-center text-sm text-slate-400">불러오는 중…</p>}
+        {loaded && pending.length === 0 && <p className="py-6 text-center text-sm text-slate-400">결재할 문서가 없습니다</p>}
         <div className="space-y-4">
           {pending.map((a) => (
             <div key={key(a)} className="rounded-xl border border-slate-200 p-4">
@@ -73,7 +76,7 @@ export function Approvals({ teacherNo }: { teacherNo: string }) {
         </div>
       </Card>
       <Card title="나의 결재 이력">
-        <Table head={["결재일시", "문서", "차수", "단계", "결과", "반려 사유"]} empty={!history.length}>
+        <Table head={["결재일시", "문서", "차수", "단계", "결과", "반려 사유"]} loading={!loaded} empty={!history.length}>
           {history.map((h) => (
             <tr key={key(h)}>
               <Td className="text-xs">{fmtDT(h.decided_at)}</Td><Td className="font-medium">{h.doc_no}호 {h.notices?.title}</Td>
