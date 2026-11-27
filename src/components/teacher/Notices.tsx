@@ -130,7 +130,7 @@ export function Notices({ teacherNo, department, isJunior }: { teacherNo: string
         <Card title={editing ? `${editing}호 수정 (반려 사유 반영)` : "가정통신문 기안"} right={<Button small variant="ghost" onClick={closeForm}>닫기</Button>}>
           {editing && (() => {
             const rej = approvals.filter((a) => a.doc_no === editing && a.status === "반려").pop();
-            return rej ? <div className="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">반려 사유 ({name(rej.teacher_no)}): {rej.reject_reason}</div> : null;
+            return rej ? <div className="mb-4 rounded-[3px] bg-rose-50 p-3 text-sm text-rose-800">반려 사유 ({name(rej.teacher_no)}): {rej.reject_reason}</div> : null;
           })()}
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="제목"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
@@ -254,7 +254,7 @@ function NoticeDetail({ docNo, onFlash }: { docNo: string; onFlash: ReturnType<t
   return (
     <div ref={boxRef} className="scroll-mt-4">
     <Card title={`${n.doc_no}호 ${n.title}`} right={<span className="text-xs text-slate-400">응답 현황 상세</span>}>
-      <p className="mb-4 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{n.body}</p>
+      <p className="mb-4 whitespace-pre-wrap rounded-[3px] bg-slate-50 p-3 text-sm text-slate-700">{n.body}</p>
       {stat && n.status === "게시" && (
         <>
           <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -276,7 +276,7 @@ function NoticeDetail({ docNo, onFlash }: { docNo: string; onFlash: ReturnType<t
                       return (
                         <div key={o} className="mb-1 flex items-center gap-2 text-xs">
                           <span className="w-20 shrink-0 text-slate-600">{o}</span>
-                          <div className="h-3 flex-1 rounded bg-slate-100"><div className="h-3 rounded bg-teal-600" style={{ width: `${pct}%` }} /></div>
+                          <div className="h-3 flex-1 rounded bg-slate-100"><div className="h-3 rounded bg-[#1f4e8c]" style={{ width: `${pct}%` }} /></div>
                           <span className="w-8 text-right text-slate-500">{c}</span>
                         </div>
                       );

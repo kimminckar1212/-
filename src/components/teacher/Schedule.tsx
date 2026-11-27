@@ -81,7 +81,7 @@ export function Schedule() {
 
       <Card title={`전체 시간표 ${term ? `(${term.school_year}학년도 ${term.semester}학기)` : ""}`}
         right={
-          <select className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs" value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <select className="rounded-[3px] border border-slate-300 px-2 py-1.5 text-xs" value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="">전체 보기</option>
             <optgroup label="교실별">{rooms.map((r) => <option key={r.room_no} value={r.room_no}>{r.room_no} {r.room_name}</option>)}</optgroup>
             <optgroup label="교사별">{[...new Set(sections.map((s) => s.teacher_no))].map((t) => <option key={t} value={t}>{name(t)}</option>)}</optgroup>

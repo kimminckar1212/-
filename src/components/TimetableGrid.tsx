@@ -6,7 +6,7 @@ export const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export type Slot = { day_of_week: string; period: number; title: string; sub?: string; extra?: ReactNode };
 
-const palette = ["bg-teal-50 border-teal-200", "bg-sky-50 border-sky-200", "bg-amber-50 border-amber-200", "bg-violet-50 border-violet-200",
+const palette = ["bg-[#eef3fa] border-teal-200", "bg-sky-50 border-sky-200", "bg-amber-50 border-amber-200", "bg-violet-50 border-violet-200",
   "bg-rose-50 border-rose-200", "bg-emerald-50 border-emerald-200", "bg-orange-50 border-orange-200", "bg-indigo-50 border-indigo-200"];
 
 export function TimetableGrid({ slots }: { slots: Slot[] }) {

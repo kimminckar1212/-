@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useProfile } from "@/lib/session";
 import { errMsg, supabase } from "@/lib/supabase";
 import { Shell } from "@/components/Shell";
-import { Alert, Badge, Button, Card, fmtDT, Loading, Table, Tabs, Td, useFlash } from "@/components/ui";
+import { Alert, Badge, Button, Card, fmtDT, Loading, Table, Td, useFlash } from "@/components/ui";
 import { MyTimetable, useCurrentPeriod } from "@/components/StudentShared";
 import { NoticeInbox } from "@/components/NoticeInbox";
 
@@ -14,10 +14,9 @@ export default function StudentPage() {
   const profile = useProfile("학생");
   const [tab, setTab] = useState<(typeof TABS)[number]>("수강신청");
   return (
-    <Shell profile={profile}>
+    <Shell profile={profile} nav={{ title: "학생 서비스", items: TABS, value: tab, onChange: (v) => setTab(v as (typeof TABS)[number]) }}>
       {profile?.student && (
         <>
-          <Tabs tabs={TABS} value={tab} onChange={setTab} />
           {tab === "수강신청" && <Apply studentNo={profile.student.student_no} />}
           {tab === "신청·배정 내역" && <History studentNo={profile.student.student_no} />}
           {tab === "내 시간표" && <MyTimetable studentNo={profile.student.student_no} />}
@@ -94,7 +93,7 @@ function Apply({ studentNo }: { studentNo: string }) {
             const over = o.total_capacity > 0 && o.applicant_count > o.total_capacity;
             return (
               <tr key={o.offering_id} className={o.status === "폐강" ? "bg-slate-50 text-slate-400" : ""}>
-                <Td>
+                <Td className="text-left">
                   <div className="font-medium">{o.subject_name}</div>
                   <div className="flex gap-1 text-xs text-slate-400">{o.subject_code}
                     {o.is_required && <Badge tone="폐강">필수</Badge>}{o.is_small_class && <Badge tone="결재중">소인수</Badge>}</div>

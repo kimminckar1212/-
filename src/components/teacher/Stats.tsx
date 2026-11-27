@@ -39,7 +39,7 @@ export function Stats() {
             return (
               <tr key={o.offering_id}>
                 <Td className="font-medium">{o.subject_name}</Td><Td>{o.applicant_count}</Td><Td>{o.enrolled_count} / {o.total_capacity}</Td>
-                <Td><div className="flex items-center gap-2"><div className="h-2 w-28 rounded bg-slate-100"><div className="h-2 rounded bg-teal-600" style={{ width: `${Math.min(pct, 100)}%` }} /></div><span className="text-xs text-slate-500">{pct}%</span></div></Td>
+                <Td><div className="flex items-center gap-2"><div className="h-2 w-28 rounded bg-slate-100"><div className="h-2 rounded bg-[#1f4e8c]" style={{ width: `${Math.min(pct, 100)}%` }} /></div><span className="text-xs text-slate-500">{pct}%</span></div></Td>
                 <Td><Badge>{o.status}</Badge></Td>
               </tr>
             );

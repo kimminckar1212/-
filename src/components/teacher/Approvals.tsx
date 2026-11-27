@@ -54,13 +54,13 @@ export function Approvals({ teacherNo }: { teacherNo: string }) {
         {loaded && pending.length === 0 && <p className="py-6 text-center text-sm text-slate-400">결재할 문서가 없습니다</p>}
         <div className="space-y-4">
           {pending.map((a) => (
-            <div key={key(a)} className="rounded-xl border border-slate-200 p-4">
+            <div key={key(a)} className="rounded-[3px] border border-slate-200 p-4">
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <Badge tone="검토">{a.step} 결재</Badge>
                 <span className="text-xs text-slate-500">{a.doc_no}호 · {a.submit_round}차 상신 · 기안 {name(a.notices.writer_teacher_no)} · {a.notices.department}</span>
               </div>
               <div className="font-medium text-slate-800">{a.notices.title}</div>
-              <p className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{a.notices.body}</p>
+              <p className="mt-2 whitespace-pre-wrap rounded-[3px] bg-slate-50 p-3 text-sm text-slate-700">{a.notices.body}</p>
               <div className="mt-1 text-xs text-slate-500">
                 대상 {a.notices.target}{a.notices.target_grade ? ` ${a.notices.target_grade}학년` : ""} · {a.notices.delivery_method}
                 {a.notices.has_survey && ` · 설문 ${a.notices.survey_questions?.length ?? 0}문항 (기한 ${a.notices.reply_deadline})`}

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useProfile } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { Shell } from "@/components/Shell";
-import { Tabs } from "@/components/ui";
 import { Courses } from "@/components/teacher/Courses";
 import { Counsel } from "@/components/teacher/Counsel";
 import { Assign } from "@/components/teacher/Assign";
@@ -29,13 +28,11 @@ export default function TeacherPage() {
 
   // 부장교사는 결재함, 일반교사는 개설·폐강부터
   const current: Tab = tab ?? (t?.isSenior ? "결재함" : "개설·폐강");
-  const labels = TABS.map((x) => (x === "결재함" && pending ? (`결재함 (${pending})` as Tab) : x));
 
   return (
-    <Shell profile={profile}>
+    <Shell profile={profile} nav={{ title: "교무 업무", items: TABS, value: current, onChange: (v) => setTab(v as Tab), badge: { 결재함: pending } }}>
       {t && (
         <>
-          <Tabs tabs={labels} value={labels[TABS.indexOf(current)]} onChange={(v) => setTab(TABS[labels.indexOf(v)])} />
           {current === "개설·폐강" && <Courses teacherNo={t.teacher_no} />}
           {current === "누락·상담" && <Counsel teacherNo={t.teacher_no} />}
           {current === "배정·추첨" && <Assign />}

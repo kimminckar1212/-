@@ -47,7 +47,7 @@ export function Courses({ teacherNo }: { teacherNo: string }) {
             const under = o.applicant_count <= o.closing_threshold;
             return (
               <tr key={o.offering_id}>
-                <Td><div className="font-medium">{o.subject_name}</div>
+                <Td className="text-left"><div className="font-medium">{o.subject_name}</div>
                   <div className="flex gap-1 text-xs text-slate-400">{o.subject_code}{o.is_small_class && <Badge tone="결재중">소인수</Badge>}{o.is_required && <Badge tone="폐강">필수</Badge>}</div></Td>
                 <Td className="text-xs">{o.subject_category}</Td>
                 <Td><span className={under ? "font-semibold text-rose-600" : ""}>{o.applicant_count}명</span>{under && <div className="text-[11px] text-rose-500">폐강 기준 해당</div>}</Td>
@@ -63,7 +63,7 @@ export function Courses({ teacherNo }: { teacherNo: string }) {
 
       {target && (
         <Card title={`폐강 판단 기록 — ${target.subject_name}`} right={<Button small variant="ghost" onClick={() => setTarget(null)}>닫기</Button>}>
-          <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg bg-slate-50 p-3 text-sm md:grid-cols-4">
+          <div className="mb-4 grid grid-cols-2 gap-3 rounded-[3px] bg-slate-50 p-3 text-sm md:grid-cols-4">
             <div><span className="text-xs text-slate-500">신청 인원</span><div className="font-medium">{target.applicant_count}명</div></div>
             <div><span className="text-xs text-slate-500">폐강 기준</span><div className="font-medium">{target.closing_threshold}명 이하</div></div>
             <div><span className="text-xs text-slate-500">소인수 교과</span><div className="font-medium">{target.is_small_class ? "예" : "아니오"}</div></div>

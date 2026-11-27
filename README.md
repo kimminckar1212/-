@@ -7,6 +7,56 @@
 
 ---
 
+## 1. Supabase 설정 (DB 담당, 약 10분)
+
+1. https://supabase.com 에서 **New project** 생성 (Region: Northeast Asia (Seoul))
+2. 왼쪽 메뉴 **SQL Editor** → New query → 아래 파일을 **순서대로** 하나씩 붙여넣고 **Run**
+
+   | 순서 | 파일 | 내용 |
+   |---|---|---|
+   | 1 | `supabase/01_schema.sql` | 테이블 23개, 도메인 CHECK·UNIQUE 제약 |
+   | 2 | `supabase/02_rules.sql` | 업무 규칙 트리거, 조회 뷰, 배정·추첨·게시 함수 |
+   | 3 | `supabase/03_seed.sql` | 시연용 데이터 |
+   | 4 | `supabase/04_auth.sql` | 시연 계정 로그인 등록 (비밀번호 `test1234`) |
+   | 5 | `supabase/05_rls.sql` | 역할별 행 수준 보안(RLS) |
+   | 6 | `supabase/06_update.sql` | 상담기록 담당 교사 제한, 미응답자 소속(자녀·관계) 표시 |
+   | 7 | `supabase/07_fix_dates.sql` | 시연 데이터 열람일시 보정 |
+
+3. **Project Settings → API** (또는 상단 **Connect** 버튼)에서 두 값을 복사
+   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
+   - anon(public) key 또는 publishable key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - ⚠ `service_role` / secret key는 절대 웹앱·GitHub에 넣지 않습니다.
+
+> 시연 데이터를 처음 상태로 되돌리려면: SQL Editor에서 `drop schema public cascade; create schema public; grant usage on schema public to anon, authenticated, service_role;` 실행 후 01~07 다시 실행 (04는 이미 등록된 계정을 건너뜀)
+
+## 2. GitHub 업로드
+
+```bash
+git init            # 이미 되어 있으면 생략
+git add .
+git commit -m "초기 구현"
+git branch -M main
+git remote add origin https://github.com/<계정>/<저장소>.git
+git push -u origin main
+```
+(또는 GitHub 웹에서 새 저장소 생성 → **uploading an existing file**로 폴더 내용 드래그. `node_modules`, `.next`는 올리지 않음)
+
+## 3. Vercel 배포
+
+1. https://vercel.com → **Add New → Project** → GitHub 저장소 Import
+2. Framework는 Next.js 자동 인식. **Environment Variables**에 위 두 값 입력
+3. **Deploy** → 발급된 `https://<이름>.vercel.app` 주소로 접속
+4. 이후 GitHub에 push하면 자동 재배포
+
+## 4. 로컬 실행 (선택)
+
+```bash
+cp .env.example .env.local   # 값 채우기
+npm install
+npm run dev                  # http://localhost:3000
+```
+
+---
 
 ## 시연 계정 (비밀번호 모두 `test1234`, 로그인 화면에 바로가기 버튼 있음)
 

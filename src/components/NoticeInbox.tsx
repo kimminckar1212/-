@@ -64,7 +64,7 @@ export function NoticeInbox({ userId }: { userId: string }) {
             {rows.map((r) => (
               <li key={r.doc_no}>
                 <button onClick={() => openDoc(r)}
-                  className={`w-full px-2 py-3 text-left transition hover:bg-slate-50 ${open?.doc_no === r.doc_no ? "bg-teal-50" : ""}`}>
+                  className={`w-full px-2 py-3 text-left transition hover:bg-slate-50 ${open?.doc_no === r.doc_no ? "bg-[#eef3fa]" : ""}`}>
                   <div className="flex items-center gap-2">
                     {!r.read_at && <span className="h-2 w-2 rounded-full bg-rose-500" title="안 읽음" />}
                     <span className="text-xs text-slate-400">{r.doc_no}호</span>
@@ -90,7 +90,7 @@ export function NoticeInbox({ userId }: { userId: string }) {
               <span>{n.department}</span><span>게시일 {fmtD(n.posted_on)}</span><span>전달 {n.delivery_method}</span>
               <span>열람 {fmtDT(open.read_at ?? new Date().toISOString())}</span>
             </div>
-            <p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">{n.body}</p>
+            <p className="whitespace-pre-wrap rounded-[3px] bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">{n.body}</p>
             {attachments.length > 0 && (
               <div className="mt-3 text-xs text-slate-500">첨부: {attachments.map((a) => a.file_name).join(", ")}</div>
             )}
@@ -116,7 +116,7 @@ export function NoticeInbox({ userId }: { userId: string }) {
                             return (
                               <button key={o} disabled={!!closed}
                                 onClick={() => setAnswers({ ...answers, [q.no]: multi ? (on ? cur.filter((x: string) => x !== o) : [...(cur ?? []), o]) : o })}
-                                className={`rounded-lg border px-3 py-1.5 text-sm ${on ? "border-teal-600 bg-teal-50 text-teal-800" : "border-slate-300 text-slate-600"}`}>
+                                className={`rounded-[3px] border px-3 py-1.5 text-sm ${on ? "border-[#1f4e8c] bg-[#eef3fa] text-[#173d6e]" : "border-slate-300 text-slate-600"}`}>
                                 {o}
                               </button>
                             );

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useProfile } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { Shell } from "@/components/Shell";
-import { Badge, Card, Table, Tabs, Td } from "@/components/ui";
+import { Badge, Card, Table, Td } from "@/components/ui";
 import { MyTimetable } from "@/components/StudentShared";
 import { NoticeInbox } from "@/components/NoticeInbox";
 
@@ -18,14 +18,13 @@ export default function ParentPage() {
   const sel = child || children[0]?.student_no;
 
   return (
-    <Shell profile={profile}>
-      <Tabs tabs={TABS} value={tab} onChange={setTab} />
+    <Shell profile={profile} nav={{ title: "학부모 서비스", items: TABS, value: tab, onChange: (v) => setTab(v as (typeof TABS)[number]) }}>
       {tab === "자녀 수강 현황" && (
         <div className="space-y-5">
           <div className="flex flex-wrap gap-2">
             {children.map((c) => (
               <button key={c.student_no} onClick={() => setChild(c.student_no)}
-                className={`rounded-xl border px-4 py-2.5 text-left text-sm transition ${sel === c.student_no ? "border-teal-600 bg-teal-50" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
+                className={`rounded-[3px] border px-4 py-2.5 text-left text-sm transition ${sel === c.student_no ? "border-[#1f4e8c] bg-[#eef3fa]" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
                 <div className="font-medium text-slate-800">{c.name}</div>
                 <div className="text-xs text-slate-500">{c.grade}학년 {c.class_no}반 {c.number}번 · {c.relation_type}</div>
               </button>

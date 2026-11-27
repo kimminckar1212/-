@@ -2,7 +2,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { homeOf, loadProfile } from "@/lib/session";
-import { Alert, Button, Field, inputCls } from "@/components/ui";
+import { Alert, Field, inputCls } from "@/components/ui";
 
 // 시연용 계정 (비밀번호 모두 test1234)
 const DEMO = [
@@ -30,6 +30,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [role, setRole] = useState("학생");
 
   // 화면에 들어올 때마다 로그인 처리 상태 초기화 (이전 화면 상태 복원 대비)
   useEffect(() => { setBusy(false); setError(""); }, []);
@@ -54,47 +55,87 @@ export default function LoginPage() {
     }
   };
 
+  const groups = DEMO.map((g) => g.group);
+  const demo = DEMO.find((g) => g.group === role) ?? DEMO[0];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-teal-50 via-slate-50 to-sky-50 p-6">
-      <div className="grid w-full max-w-4xl gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-700 font-bold text-white">무명</div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">학교 통합 관리 시스템</h1>
-              <p className="text-xs text-slate-500">수강신청 · 시간표 · 가정통신문 · 결재</p>
-            </div>
+    <div className="flex min-h-screen flex-col bg-[#eef1f5] text-[#1b2a3d]">
+      <header className="bg-[#173d6e] text-white">
+        <div className="mx-auto flex h-14 max-w-[1080px] items-center gap-3 px-5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/70 bg-white text-[13px] font-extrabold text-[#173d6e]">한빛</div>
+          <div className="leading-tight">
+            <div className="text-[16px] font-bold">한빛고등학교 <span className="font-normal text-white/80">학사행정시스템</span></div>
+            <div className="text-[11px] text-white/60">수강신청 · 시간표 · 가정통신문 · 전자결재</div>
           </div>
-          <form onSubmit={signIn} className="space-y-4">
-            <Field label="이메일"><input className={inputCls} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@school.example" /></Field>
-            <Field label="비밀번호"><input type="password" className={inputCls} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-            {error && <Alert>{error}</Alert>}
-            <Button type="submit" disabled={busy || !email || !password}>{busy ? "로그인 중…" : "로그인"}</Button>
-          </form>
-          <p className="mt-6 text-xs leading-relaxed text-slate-400">
-            Supabase Auth로 로그인하며, 로그인한 사용자 구분(학생·학부모·교사)에 따라 행 수준 보안(RLS)이 적용되어 볼 수 있는 데이터가 달라집니다.
-          </p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-1 text-sm font-semibold text-slate-800">시연 계정으로 바로 로그인</h2>
-          <p className="mb-4 text-xs text-slate-500">비밀번호는 모두 <code className="rounded bg-slate-100 px-1">test1234</code></p>
-          <div className="space-y-4">
-            {DEMO.map((g) => (
-              <div key={g.group}>
-                <div className="mb-1.5 text-xs font-medium text-slate-500">{g.group}</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {g.items.map((d) => (
-                    <button key={d.email} disabled={busy} onClick={() => signIn(undefined, d.email, "test1234")}
-                      className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs text-slate-700 transition hover:border-teal-500 hover:bg-teal-50 disabled:opacity-50">
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+      </header>
+
+      <div className="mx-auto grid w-full max-w-[1080px] flex-1 content-start gap-5 px-5 py-8 md:grid-cols-[1fr_400px]">
+        {/* 안내 영역 */}
+        <div className="space-y-4">
+          <div className="border border-[#d5dbe3] bg-gradient-to-r from-[#1f4e8c] to-[#2f64a8] px-6 py-7 text-white">
+            <div className="text-[12px] text-white/70">2027학년도 고교학점제</div>
+            <div className="mt-1 text-[22px] font-bold leading-snug">수강신청부터 가정통신문까지<br />한 곳에서 처리합니다</div>
+            <div className="mt-3 text-[12px] text-white/80">학생·학부모·교직원 구분에 따라 이용할 수 있는 메뉴가 다릅니다.</div>
+          </div>
+          <div className="border border-[#d5dbe3] bg-white">
+            <div className="flex items-center justify-between border-b border-[#e3e8ee] bg-[#fafbfc] px-4 py-2.5">
+              <h2 className="flex items-center gap-2 text-[14px] font-bold"><span className="inline-block h-3.5 w-1 bg-[#1f4e8c]" />학사 일정</h2>
+            </div>
+            <table className="w-full text-[13px]">
+              <tbody className="divide-y divide-[#edf0f4]">
+                {[
+                  ["1차 수강신청 (희망 신청)", "11. 2. ~ 11. 6."],
+                  ["2차 수강신청 (재신청)", "11. 9. ~ 11. 13."],
+                  ["3차 수강신청 (1~3지망 추첨)", "11. 20. ~ 11. 30."],
+                  ["고교학점제 학부모 설명회", "11. 27. 19:00"],
+                ].map(([a, b]) => (
+                  <tr key={a}><td className="px-4 py-2.5">{a}</td><td className="px-4 py-2.5 text-right text-[#5a6878]">{b}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 로그인 영역 */}
+        <div className="border border-[#d5dbe3] bg-white">
+          <div className="grid grid-cols-3 border-b border-[#d5dbe3]">
+            {groups.map((g) => (
+              <button key={g} onClick={() => setRole(g)}
+                className={`py-3 text-[13px] font-bold ${role === g ? "border-b-2 border-[#1f4e8c] text-[#1f4e8c]" : "bg-[#f6f8fb] text-[#8793a1]"}`}>{g === "교사" ? "교직원" : g}</button>
             ))}
+          </div>
+          <div className="p-6">
+            <form onSubmit={signIn} className="space-y-3">
+              <Field label="아이디(이메일)"><input className={inputCls} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@school.example" /></Field>
+              <Field label="비밀번호"><input type="password" className={inputCls} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+              {error && <Alert>{error}</Alert>}
+              <button type="submit" disabled={busy || !email || !password}
+                className="h-11 w-full rounded-[3px] bg-[#1f4e8c] text-[14px] font-bold text-white hover:bg-[#173d6e] disabled:opacity-40">{busy ? "로그인 중…" : "로그인"}</button>
+            </form>
+            <div className="mt-6 border-t border-[#e3e8ee] pt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[12px] font-bold text-[#3a4756]">시연 계정 ({role === "교사" ? "교직원" : role})</span>
+                <span className="text-[11px] text-[#8793a1]">비밀번호 test1234</span>
+              </div>
+              <div className="grid grid-cols-1 gap-1.5">
+                {demo.items.map((d) => (
+                  <button key={d.email} disabled={busy} onClick={() => signIn(undefined, d.email, "test1234")}
+                    className="flex items-center justify-between rounded-[3px] border border-[#d5dbe3] px-3 py-2 text-left text-[12px] text-[#3a4756] hover:border-[#1f4e8c] hover:bg-[#eef3fa] disabled:opacity-50">
+                    <span>{d.label}</span><span className="text-[#b0b9c4]">›</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <footer className="border-t border-[#d5dbe3] bg-white">
+        <div className="mx-auto max-w-[1080px] px-5 py-3 text-[11px] text-[#8793a1]">
+          한빛고등학교 학사행정시스템 · 기업 데이터베이스 설계 및 구현 2조 무명 · 시연용 가상 데이터
+        </div>
+      </footer>
     </div>
   );
 }

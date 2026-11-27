@@ -53,7 +53,7 @@ export function Assign() {
           const now = Date.now(); const open = new Date(p.starts_at).getTime() <= now && now <= new Date(p.ends_at).getTime();
           return (
             <button key={p.period_id} onClick={() => { setSel(p.period_id); setResult(null); flash.clear(); }}
-              className={`rounded-xl border p-4 text-left transition ${sel === p.period_id ? "border-teal-600 bg-teal-50" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
+              className={`rounded-[3px] border p-4 text-left transition ${sel === p.period_id ? "border-[#1f4e8c] bg-[#eef3fa]" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-800">{p.school_year}-{p.semester} {p.round}차 {p.round === 3 ? "(추첨)" : ""}</span>
                 {open ? <Badge tone="배정완료">접수 중</Badge> : <Badge tone="확인완료">{new Date(p.ends_at).getTime() < now ? "마감" : "예정"}</Badge>}
@@ -74,7 +74,7 @@ export function Assign() {
           {result && (
             <div className="mb-4 grid grid-cols-3 gap-3">
               {result.map((r: any) => (
-                <div key={r.rank} className="rounded-lg border border-slate-200 p-3 text-sm">
+                <div key={r.rank} className="rounded-[3px] border border-slate-200 p-3 text-sm">
                   <div className="text-xs text-slate-500">{r.rank}지망 처리</div>
                   <div><b className="text-emerald-700">배정 {r.assigned}</b> · <span className="text-rose-600">탈락 {r.dropped}</span></div>
                 </div>
